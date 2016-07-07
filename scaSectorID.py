@@ -36,6 +36,8 @@ import pickle
 import timeit
 import argparse
 from scipy.io import savemat
+from six import print_
+from six.moves import (pickle, range)
 
 if __name__=='__main__':
     #parse inputs
@@ -65,7 +67,7 @@ if __name__=='__main__':
         kpos = sca.chooseKpos(Lsca,Lrand)
     else:
         kpos = options.kpos
-    print("Selected kpos=%i significant eigenmodes." % kpos)    
+    print_("Selected kpos=%i significant eigenmodes." % kpos)    
     Vpica, Wpica = sca.rotICA(Vsca, kmax=kpos)
     ics,icsize,sortedpos,cutoff,scaled_pd, pd = sca.icList(Vpica,kpos,Csca, p_cut=options.cutoff)
     
@@ -101,7 +103,7 @@ if __name__=='__main__':
     db['sca'] = D_sca
     db['sector'] = D
     
-    print("Calculations complete. Writing to database file "+"Outputs/"+ fn_noext)   
+    print_("Calculations complete. Writing to database file "+"Outputs/"+ fn_noext)   
     if options.matfile:
         savemat("Outputs/"+fn_noext,db,appendmat = True, oned_as = 'column')
     time.sleep(1)

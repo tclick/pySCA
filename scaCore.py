@@ -48,6 +48,8 @@ from Bio import SeqIO
 from scipy.stats import t
 from scipy.stats import scoreatpercentile 
 from scipy.io import savemat
+from six import print_
+from six.moves import (pickle, range)
 
 if __name__ == '__main__':
 
@@ -76,21 +78,21 @@ if __name__ == '__main__':
     hd = D_in['hd']
 
     # sequence analysis
-    print("Computing the sequence projections.")
+    print_("Computing the sequence projections.")
     Useq, Uica = sca.seqProj(msa_num, seqw, kseq = 30, kica = 15)
     simMat = sca.seqSim(msa_num)
 
     # SCA calculations
-    print("Computing the SCA conservation and correlation values.")
+    print_("Computing the SCA conservation and correlation values.")
     Wia,Dia,Di = sca.posWeights(msa_num, seqw, options.lbda)
     Csca, tX, Proj = sca.scaMat(msa_num, seqw, options.norm, options.lbda)
 
     # Matrix randomizations
-    print("Computing matrix randomizations...")
+    print_("Computing matrix randomizations...")
     start = time.time()
     Vrand, Lrand, Crand = sca.randomize(msa_num, options.Ntrials, seqw, options.lbda)
     end = time.time()
-    print("Randomizations complete, %i trials, time: %.1f minutes" % (options.Ntrials, (end-start)/60))
+    print_("Randomizations complete, %i trials, time: %.1f minutes" % (options.Ntrials, (end-start)/60))
 
     # saving...
     path_list = options.database.split(os.sep)
@@ -116,10 +118,10 @@ if __name__ == '__main__':
     db['sequence']=D_in
     db['sca']=D
 
-    print("Calculations complete, writing to database file "+"Outputs/"+ fn_noext)
+    print_("Calculations complete, writing to database file "+"Outputs/"+ fn_noext)
     if options.matfile:
         savemat("Outputs/"+fn_noext,db,appendmat = True, oned_as = 'column')
     time.sleep(10)
 
-    pickle.dump(db,open("Outputs/"+ fn_noext + ".db","wb"))    
+    pickle.dump(db,open("Outputs/"+ fn_noext + ".db","wb"),protocol=pickle.HIGHEST_PROTOCOL)    
     

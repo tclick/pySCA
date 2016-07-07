@@ -20,7 +20,7 @@ license, please see the file LICENSE for details.
 from __future__ import absolute_import
 import scaTools as sca
 import argparse 
-
+from six import print_
 
 if __name__ =='__main__':
         #parse inputs
@@ -30,13 +30,13 @@ if __name__ =='__main__':
         parser.add_argument("--output", dest="outputfile", default = 'FixedHeaders.fa', help="specify an outputfile name")
         options = parser.parse_args()
 
-        print ("WARNING:  This script assumes that the headers of the two input fasta files are in IDENTICAL order. If this is NOT true, the script will give incorrect results");
+        print_"WARNING:  This script assumes that the headers of the two input fasta files are in IDENTICAL order. If this is NOT true, the script will give incorrect results");
 
         headers1, seqs1 = sca.readAlg(options.alignment_for_headers)
         headers2, seqs2 = sca.readAlg(options.alignment_for_seqs)
 
         if (len(seqs2) != len(headers1)):
-            print ("ERROR: The length of the two alignments does not match.")
+            print_"ERROR: The length of the two alignments does not match.")
             exit
                 
 

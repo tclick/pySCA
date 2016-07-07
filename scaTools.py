@@ -38,6 +38,8 @@ from Bio.SeqRecord import SeqRecord
 from scipy.stats import t
 from scipy.stats import scoreatpercentile 
 from optparse import OptionParser
+from six import print_
+from six.moves import range
 
 ##########################################################################################
 # PATHS
@@ -123,7 +125,7 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=path2pfamseq):
 
     '''
     start_time=time.time()
-    print('Beginning annotation')
+    print_('Beginning annotation')
     # Reads the pfam headers and sequences:
     headers, sequences = readAlg(pfam_in)
     pfamseq_ids = [h.split('/')[0] for h in headers]
@@ -140,7 +142,7 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=path2pfamseq):
     f = open(pfam_out,'w')
     pfamseq_ids = [h.split('/')[0] for h in headers]
     for i, key in enumerate(pfamseq_ids):
-        print('Current step %i, key %s' % (i,key))
+        print_('Current step %i, key %s' % (i,key))
         try:
             info = seq_info[key]
         except:
@@ -149,7 +151,7 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=path2pfamseq):
                 ','.join([name.strip() for name in info.split('\t')[10].split(';')])))
         f.write('%s\n' % (sequences[i]))
     f.close()
-    print('Elapsed time: %.1f min' % ((end_time-start_time)/60))
+    print_('Elapsed time: %.1f min' % ((end_time-start_time)/60))
 
 def clean_al(alg, code='ACDEFGHIKLMNPQRSTVWY', gap='-'):
     ''' Replaces any character that is not a valid amino acid by a gap. 
@@ -195,7 +197,7 @@ def MSAsearch(hd, algn, seq, species = None, path2_algprog=path2needle):
         algn = [algn[k] for k in key_list]
 
     try:
-        print("Trying MSASearch with ggsearch")
+        print_("Trying MSASearch with ggsearch")
         if not os.path.exists('tmp/'): os.makedirs('tmp/')  
         output_handle = open('tmp/PDB_seq.fasta', 'w')
         SeqIO.write(SeqRecord(Seq(seq), id='PDB sequence'), output_handle, "fasta") 
@@ -217,7 +219,7 @@ def MSAsearch(hd, algn, seq, species = None, path2_algprog=path2needle):
     except:
         try:
             from Bio.Emboss.Applications import NeedleCommandline 
-            print("Trying MSASearch with EMBOSS")
+            print_("Trying MSASearch with EMBOSS")
             output_handle = open('tmp/PDB_seq.fasta', 'w')
             SeqIO.write(SeqRecord(Seq(seq), id='PDB sequence'), output_handle, "fasta") 
             output_handle.close()
@@ -231,7 +233,7 @@ def MSAsearch(hd, algn, seq, species = None, path2_algprog=path2needle):
                 asequence="tmp/PDB_seq.fasta",\
                 bsequence="tmp/algn_seq.fasta", gapopen=10, gapextend=0.5, outfile="tmp/needle.txt")
             stdout, stderr = needle_cline()
-            print(stdout+stderr)
+            print_(stdout+stderr)
             algres = open('tmp/needle.txt', 'r').readlines()
             score = list()
             for k in algres:
@@ -245,7 +247,7 @@ def MSAsearch(hd, algn, seq, species = None, path2_algprog=path2needle):
             shutil.rmtree('tmp')
             return strseqnum
         except:
-            print("Trying MSASearch with BioPython")
+            print_("Trying MSASearch with BioPython")
             score = list()
             for k,s in enumerate(algn):
                 score.append(pairwise2.align.globalxx(algn, s, one_alignment_only=1, score_only=1))
@@ -254,7 +256,7 @@ def MSAsearch(hd, algn, seq, species = None, path2_algprog=path2needle):
                 strseqnum = key_list[i_0]
             else:
                 strseqnum = i_0 
-            print("BP strseqnum is %i" % (strseqnum))
+            print_("BP strseqnum is %i" % (strseqnum))
             return strseqnum
 
 def chooseRefSeq(alg):
@@ -301,7 +303,7 @@ def makeATS(sequences, refpos, refseq, iref=0, truncate=False):
 
     '''
     if truncate == True:
-        print("truncating to reference sequence...")
+        print_("truncating to reference sequence...")
         # Removing gaps:
         pos_ref = [i for i,a in enumerate(refseq) if a != '-']
         seq_ref = ''.join([refseq[i] for i in pos_ref])

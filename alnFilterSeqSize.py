@@ -21,6 +21,7 @@ from __future__ import absolute_import
 import scaTools as sca
 import numpy as np
 import argparse
+from six import print_
 
 if __name__ =='__main__':
         #parse inputs
@@ -36,11 +37,11 @@ if __name__ =='__main__':
         for i,k in enumerate(seqs):
             seqLen[i] = len(k)
         avgLen = seqLen.mean()
-        print ("Average sequence length: %i" % avgLen)
-        print ("Min: %i, Max %i" % (seqLen.min(), seqLen.max()))
+        print_("Average sequence length: %i" % avgLen)
+        print_("Min: %i, Max %i" % (seqLen.min(), seqLen.max()))
         minsz = avgLen - options.tol;
         maxsz = avgLen + options.tol;
-        print ("Keeping sequences in the range: %i - %i" % (minsz, maxsz))
+        print_("Keeping sequences in the range: %i - %i" % (minsz, maxsz))
 
         keepSeqs = list()
         keepHeaders = list()
@@ -49,7 +50,7 @@ if __name__ =='__main__':
                 keepSeqs.append(seqs[i])
                 keepHeaders.append(headers[i])
         
-        print ("Keeping %i of %i total sequences" % (len(keepSeqs), len(seqLen)))
+        print_("Keeping %i of %i total sequences" % (len(keepSeqs), len(seqLen)))
         
         f = open(options.outputfile, 'w')
         for i,k in enumerate(keepSeqs):

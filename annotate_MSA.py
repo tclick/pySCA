@@ -44,6 +44,8 @@ from Bio import SeqIO
 from Bio import Entrez
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
+from six import print_
+from six.moves import range
 
 Entrez.email = "your.email@youruniversity.edu"  # PLEASE change to your own email !!!
 
@@ -86,10 +88,10 @@ if __name__ == '__main__':
                 except:
                     taxID.append('')
         end = time.clock()
-        print "Look up for Tax IDs complete. Time: %f" % (end-start)
+        print_("Look up for Tax IDs complete. Time: %f" % (end-start))
 
         # Collect records with lineage information
-        print "Collecting taxonomy information..."
+        print_("Collecting taxonomy information...")
         start = time.clock()
         records = list()
         for i,k in enumerate(taxID):
@@ -98,12 +100,12 @@ if __name__ == '__main__':
                 temp_rec = Entrez.read(handle)
                 handle.close()
                 records.append(temp_rec[0])
-                print "%s" % (temp_rec[0]['Lineage'])
-                print "%s" % (temp_rec[0]['ScientificName'])
+                print_("%s" % (temp_rec[0]['Lineage']))
+                print_("%s" % (temp_rec[0]['ScientificName']))
             except:
                 records.append('')
         end = time.clock()
-        print "Look up for taxonomy information complete. Time: %f" % (end-start)
+        print_("Look up for taxonomy information complete. Time: %f" % (end-start))
 
         # Write to the output fasta file.
         s_records = list()
@@ -114,7 +116,7 @@ if __name__ == '__main__':
                 hdnew = hd[i]+'|'+records[i]['ScientificName']+'|'+','.join(records[i]['Lineage'].split(';'))
             except:
                 hdnew = hd[i]+'| unknown '
-                print "Unable to add taxonomy information for seq: %s" % hd[i]
+                print_("Unable to add taxonomy information for seq: %s" % hd[i])
             f.write('>%s\n' % hdnew)
             f.write('%s\n' % k)
         f.close()
