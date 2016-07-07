@@ -37,7 +37,7 @@ import timeit
 import argparse
 from scipy.io import savemat
 from six import print_
-from six.moves import (pickle, range)
+from six.moves import range
 
 if __name__=='__main__':
     #parse inputs
