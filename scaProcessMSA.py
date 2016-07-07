@@ -51,6 +51,7 @@ from __future__ import (absolute_import, division)
 import sys
 import time
 import os
+import os.path as path
 import numpy as np
 import copy
 import scipy.cluster.hierarchy as sch
@@ -337,8 +338,8 @@ if __name__ == '__main__':
     db['sequence'] = D
 
     if options.matfile:
-        with open("Outputs/" + fn_noext) as matfile:
-            savemat(matfile, db, appendmat=True, oned_as='column')
+        matfile = path.join("Outputs", fn_noext)
+        savemat(matfile, db, appendmat=True, oned_as='column')
 
-    with open("Outputs/" + fn_noext + ".db", "wb") as db_file:
+    with open(".".join((path.join("Outputs", fn_noext), "db")), "wb") as db_file:
         pickle.dump(db, db_file, protocol=pickle.HIGHEST_PROTOCOL)
