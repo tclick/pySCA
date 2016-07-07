@@ -27,7 +27,7 @@ Copyright (C) 2015 Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds
 This program is free software distributed under the BSD 3-clause
 license, please see the file LICENSE for details.
 """
-from __future__ import division
+from __future__ import (absolute_import, division)
 import sys, time
 import os
 import numpy as np
