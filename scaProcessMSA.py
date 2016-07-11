@@ -333,7 +333,7 @@ if __name__ == '__main__':
 
     if options.matfile:
         matfile = path.join("Outputs", fn_noext)
-        savemat(matfile, sca.convert_keys_to_string(db), oned_as='column')
+        savemat(matfile, sca.convert_keys_to_string(sca.convert_values_to_string(db)), oned_as='column')
 
     with open(".".join((path.join("Outputs", fn_noext), "db")), mode='wb') as db_out:
         cPickle.dump(db, db_out, protocol=cPickle.HIGHEST_PROTOCOL)

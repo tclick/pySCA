@@ -33,11 +33,11 @@ from mpl_toolkits.mplot3d import Axes3D
 from scipy.sparse import csr_matrix as sparsify
 from scipy.stats import scoreatpercentile
 from scipy.stats import t
-from six import print_
+from six import (iterkeys, iteritems, print_)
 import scipy.sparse
 import scipy.sparse.linalg
 
-from six.moves import (iterkeys, iteritems, range)
+from six.moves import range
 import matplotlib.cm as cm
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt

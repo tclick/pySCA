@@ -116,7 +116,7 @@ if __name__ == '__main__':
     print_(" ".join(("Calculations complete. Writing to database file", path.join("Outputs", fn_noext))))
     if options.matfile:
         matfile = path.join("Outputs", fn_noext)
-        savemat(matfile, sca.convert_keys_to_string(db), oned_as='column')
+        savemat(matfile, sca.convert_keys_to_string(sca.convert_values_to_string(db)), oned_as='column')
 
     time.sleep(1)
     with open(".".join((path.join("Outputs", fn_noext), "db")), mode='wt') as db_out:
