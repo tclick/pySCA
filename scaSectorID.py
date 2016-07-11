@@ -27,30 +27,41 @@ Copyright (C) 2015 Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds
 This program is free software distributed under the BSD 3-clause
 license, please see the file LICENSE for details.
 """
-from __future__ import division
-import sys, time
-import os
-import numpy as np
-import scaTools as sca
-import pickle
-import timeit
-import argparse
-from scipy.io import savemat
+from __future__ import (absolute_import, division, unicode_literals)
 
-if __name__=='__main__':
-    #parse inputs
+import argparse
+import os
+import sys
+import time
+import timeit
+
+from scipy.io import savemat
+from six import print_
+
+from six.moves import (cPickle, range)
+import numpy as np
+import os.path as path
+import scaTools as sca
+
+
+if __name__ == '__main__':
+    # parse inputs
     parser = argparse.ArgumentParser()
     parser.add_argument("database", help="database from running scaCore")
-    parser.add_argument("-k", "--kpos", dest = "kpos", type = int, default=0, help="number of significant eigenmodes for analysis (the default is to automatically choose using the eigenspectrum)")
-    parser.add_argument("-p", "--cutoff", dest = "cutoff", type = float, default=0.95, help="number of significant eigenmodes for analysis (the default is to automatically choose using the eigenspectrum)")
-    parser.add_argument("-m","--matlab", action = "store_true", dest = "matfile", default = False, help="write out the results of this script to a matlab workspace for further analysis")
+    parser.add_argument("-k", "--kpos", dest="kpos", type=int, default=0,
+                        help="number of significant eigenmodes for analysis (the default is to automatically choose using the eigenspectrum)")
+    parser.add_argument("-p", "--cutoff", dest="cutoff", type=float, default=0.95,
+                        help="number of significant eigenmodes for analysis (the default is to automatically choose using the eigenspectrum)")
+    parser.add_argument("-m", "--matlab", action="store_true", dest="matfile", default=False,
+                        help="write out the results of this script to a matlab workspace for further analysis")
     options = parser.parse_args()
 
     # extract the necessary stuff from the database...
-    db_in = pickle.load(open(options.database,"rb"))
-    D_seq = db_in['sequence']
-    D_sca = db_in['sca']
-    
+    with open(options.database, mode='rt') as db_file:
+        db_in = cPickle.load(db_file)
+        D_seq = db_in['sequence']
+        D_sca = db_in['sca']
+
     msa_num = D_seq['msa_num']
     seqw = D_seq['seqw']
     lbda = D_sca['lbda']
@@ -62,24 +73,25 @@ if __name__=='__main__':
     Vsca, Lsca = sca.eigenVect(Csca)
 
     if (options.kpos == 0):
-        kpos = sca.chooseKpos(Lsca,Lrand)
+        kpos = sca.chooseKpos(Lsca, Lrand)
     else:
         kpos = options.kpos
-    print("Selected kpos=%i significant eigenmodes." % kpos)    
+    print_("Selected kpos={} significant eigenmodes.".format(kpos))
     Vpica, Wpica = sca.rotICA(Vsca, kmax=kpos)
-    ics,icsize,sortedpos,cutoff,scaled_pd, pd = sca.icList(Vpica,kpos,Csca, p_cut=options.cutoff)
-    
-    Usca = tX.dot(Vsca[:,:kpos]).dot(np.diag(1/np.sqrt(Lsca[:kpos])))
+    ics, icsize, sortedpos, cutoff, scaled_pd, pd = sca.icList(Vpica, kpos, Csca, p_cut=options.cutoff)
+
+    Usca = tX.dot(Vsca[:, :kpos]).dot(np.diag(1 / np.sqrt(Lsca[:kpos])))
     Upica = Wpica.dot(Usca.T).T
-    for k in range(Upica.shape[1]): Upica[:,k] /= np.sqrt(Upica[:,k].T.dot(Upica[:,k]))
-    Usica, Wsica = sca.rotICA(Usca, kmax=kpos) 
+    for k in range(Upica.shape[1]):
+        Upica[:, k] /= np.sqrt(Upica[:, k].T.dot(Upica[:, k]))
+    Usica, Wsica = sca.rotICA(Usca, kmax=kpos)
 
     # saving...
     path_list = options.database.split(os.sep)
     fn = path_list[-1]
     fn_noext = fn.split(".")[0]
 
-    D={}
+    D = {}
     D['Vsca'] = Vsca
     D['Lsca'] = Lsca
     D['kpos'] = kpos
@@ -95,14 +107,17 @@ if __name__=='__main__':
     D['cutoff'] = cutoff
     D['scaled_pd'] = scaled_pd
     D['pd'] = pd
-    
+
     db = {}
     db['sequence'] = D_seq
     db['sca'] = D_sca
     db['sector'] = D
-    
-    print("Calculations complete. Writing to database file "+"Outputs/"+ fn_noext)   
+
+    print_(" ".join(("Calculations complete. Writing to database file", path.join("Outputs", fn_noext))))
     if options.matfile:
-        savemat("Outputs/"+fn_noext,db,appendmat = True, oned_as = 'column')
+        matfile = path.join("Outputs", fn_noext)
+        savemat(matfile, sca.convert_keys_to_string(sca.convert_values_to_string(db)), oned_as='column')
+
     time.sleep(1)
-    pickle.dump(db,open("Outputs/"+ fn_noext + ".db","wb"))
+    with open(".".join((path.join("Outputs", fn_noext), "db")), mode='wt') as db_out:
+        cPickle.dump(db, db_out, protocol=cPickle.HIGHEST_PROTOCOL)
