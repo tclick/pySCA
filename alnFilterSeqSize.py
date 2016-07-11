@@ -23,39 +23,37 @@ import numpy as np
 import argparse
 from six import print_
 
-if __name__ =='__main__':
-        #parse inputs
-        parser = argparse.ArgumentParser()
-        parser.add_argument("alignment", help='Input Sequence Alignment')
-        parser.add_argument("-t","--tolerance", dest = "tol", type = int, default = 50, help="allowable sequence length variation in number of amino acids (alignment will be trimmed to mean +/- tolerance, default = 50)")
-        parser.add_argument("--output", dest="outputfile", default = 'FilteredAln.fa', help="specify an outputfile name")
+if __name__ == '__main__':
+    # parse inputs
+    parser = argparse.ArgumentParser()
+    parser.add_argument("alignment", help='Input Sequence Alignment')
+    parser.add_argument("-t", "--tolerance", dest="tol", type=int, default=50,
+                        help="allowable sequence length variation in number of amino acids (alignment will be trimmed to mean +/- tolerance, default = 50)")
+    parser.add_argument("--output", dest="outputfile", default='FilteredAln.fa', help="specify an outputfile name")
 
-        options = parser.parse_args()
+    options = parser.parse_args()
 
-        headers, seqs = sca.readAlg(options.alignment)
-        seqLen = np.zeros((len(seqs),1)).astype(int)
-        for i,k in enumerate(seqs):
-            seqLen[i] = len(k)
-        avgLen = seqLen.mean()
-        print_("Average sequence length: %i" % avgLen)
-        print_("Min: %i, Max %i" % (seqLen.min(), seqLen.max()))
-        minsz = avgLen - options.tol;
-        maxsz = avgLen + options.tol;
-        print_("Keeping sequences in the range: %i - %i" % (minsz, maxsz))
+    headers, seqs = sca.readAlg(options.alignment)
+    seqLen = np.zeros((len(seqs), 1)).astype(int)
+    for i, k in enumerate(seqs):
+        seqLen[i] = len(k)
+    avgLen = seqLen.mean()
+    print_("Average sequence length: {:.0f}".format(np.round(avgLen)))
+    print_("Min: {:d}, Max {:d}".format(seqLen.min(), seqLen.max()))
+    minsz = avgLen - options.tol
+    maxsz = avgLen + options.tol
+    print_("Keeping sequences in the range: {:f} - {:f}".format(minsz, maxsz))
 
-        keepSeqs = list()
-        keepHeaders = list()
-        for i,k in enumerate(seqLen):
-            if (k > minsz) & (k < maxsz):
-                keepSeqs.append(seqs[i])
-                keepHeaders.append(headers[i])
-        
-        print_("Keeping %i of %i total sequences" % (len(keepSeqs), len(seqLen)))
-        
-        f = open(options.outputfile, 'w')
-        for i,k in enumerate(keepSeqs):
-            f.write('>%s\n' % keepHeaders[i])
-            f.write('%s\n' % keepSeqs[i])
-        f.close()
-    
-            
+    keepSeqs = list()
+    keepHeaders = list()
+    for i, k in enumerate(seqLen):
+        if (k > minsz) & (k < maxsz):
+            keepSeqs.append(seqs[i])
+            keepHeaders.append(headers[i])
+
+    print_("Keeping {:d} of {:d} total sequences".format(len(keepSeqs), len(seqLen)))
+
+    with open(options.outputfile, 'w') as f:
+        for i, k in enumerate(keepSeqs):
+            print_('>{}'.format(keepHeaders[i]), file=f)
+            print_('{}'.format(keepSeqs[i]), file=f)

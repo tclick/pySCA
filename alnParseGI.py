@@ -19,18 +19,18 @@ license, please see the file LICENSE for details.
 from __future__ import absolute_import
 import scaTools as sca
 import argparse
+from six import print_
 
-if __name__ =='__main__':
-    #parse inputs
+if __name__ == '__main__':
+    # parse inputs
     parser = argparse.ArgumentParser()
     parser.add_argument("alignment", help='Input Sequence Alignment')
-    parser.add_argument("--output", dest="outputfile", default = 'GI_Num', help="specify an outputfile name")
+    parser.add_argument("--output", dest="outputfile", default='GI_Num', help="specify an outputfile name")
     options = parser.parse_args()
 
     headers, seqs = sca.readAlg(options.alignment)
     gis = [h.split('_')[1] for h in headers]
-    
-    f = open(options.outputfile, 'w')
-    for gi in gis:
-        f.write('%s\n' % gi)
-    f.close()
+
+    with open(options.outputfile, 'w') as f:
+        for gi in gis:
+            print_('{}'.format(gi), file=f)

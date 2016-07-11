@@ -47,21 +47,24 @@ Copyright (C) 2015 Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds
 This program is free software distributed under the BSD 3-clause
 license, please see the file LICENSE for details.
 """
-from __future__ import (absolute_import, division)
+from __future__ import (absolute_import, division, unicode_literals)
+
+import argparse
+import copy
+import os
 import sys
 import time
-import os
-import os.path as path
-import numpy as np
-import copy
-import scipy.cluster.hierarchy as sch
-import scaTools as sca
-import pickle
-import argparse
+
 from Bio import SeqIO
 from scipy.io import savemat
 from six import print_
-from six.moves import range
+
+from six.moves import (cPickle, range)
+import numpy as np
+import os.path as path
+import scaTools as sca
+import scipy.cluster.hierarchy as sch
+
 
 if __name__ == '__main__':
     # parse inputs
@@ -330,8 +333,7 @@ if __name__ == '__main__':
 
     if options.matfile:
         matfile = path.join("Outputs", fn_noext)
-        savemat(matfile, db, appendmat=True, oned_as='column')
+        savemat(matfile, sca.convert_keys_to_string(db), oned_as='column')
 
-    db_filename = ".".join((path.join("Outputs", fn_noext), "db"))
-    with open(db_filename, "wb") as db_file:
-        pickle.dump(db, db_file, protocol=pickle.HIGHEST_PROTOCOL)
+    with open(".".join((path.join("Outputs", fn_noext), "db")), mode='wb') as db_out:
+        cPickle.dump(db, db_out, protocol=cPickle.HIGHEST_PROTOCOL)

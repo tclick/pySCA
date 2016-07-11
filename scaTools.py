@@ -14,40 +14,43 @@ Copyright (C) 2015 Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds
 This program is free software distributed under the BSD 3-clause
 license, please see the file LICENSE for details.
 """
-from __future__ import (absolute_import, division)
-import os
-import subprocess
-import copy
-import time
-import numpy as np
-import random as rand
-import scipy.sparse
-import scipy.sparse.linalg
-from scipy.sparse import csr_matrix as sparsify
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import matplotlib.cm as cm
-from mpl_toolkits.mplot3d import Axes3D
+from __future__ import (absolute_import, division, unicode_literals)
+
+from optparse import OptionParser
 import colorsys
+import copy
+import os
 import shutil
-from Bio.PDB.PDBParser import PDBParser
-from Bio import pairwise2
+import subprocess
+import time
+
 from Bio import SeqIO
+from Bio import pairwise2
+from Bio.PDB.PDBParser import PDBParser
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
-from scipy.stats import t
+from mpl_toolkits.mplot3d import Axes3D
+from scipy.sparse import csr_matrix as sparsify
 from scipy.stats import scoreatpercentile
-from optparse import OptionParser
+from scipy.stats import t
 from six import print_
-from six.moves import range
+import scipy.sparse
+import scipy.sparse.linalg
+
+from six.moves import (iterkeys, iteritems, range)
+import matplotlib.cm as cm
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+import numpy as np
+import random as rand
+
 
 ##########################################################################
 # PATHS
 # These have to be changed to be consistent with user-defined paths.
-
 # (this directory should contain the file 'pfamseq.txt' from
 # ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/database_files/
-path2pfamseq = '~/Documents/Packages/pfamseq.txt'
+path2pfamseq = '~/code/python/pySCA/pfamseq.txt'
 
 # the location of your PDB structures
 path2structures = 'Inputs/'
@@ -150,18 +153,17 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=path2pfamseq):
                 pfamseq_ids.remove(pf_id)
     end_time = time.time()
     # Writes in output file:
-    f = open(pfam_out, 'w')
-    pfamseq_ids = [h.split('/')[0] for h in headers]
-    for i, key in enumerate(pfamseq_ids):
-        print_('Current step %i, key %s' % (i, key))
-        try:
-            info = seq_info[key]
-        except:
-            info = '\t'.join(['unknown'] * 10 + ['unknown;unknown'])
-        f.write('>%s|%s|%s|%s\n' % (key, info.split('\t')[6], info.split('\t')[9],
-                                    ','.join([name.strip() for name in info.split('\t')[10].split(';')])))
-        f.write('%s\n' % (sequences[i]))
-    f.close()
+    with open(pfam_out, 'w') as f:
+        pfamseq_ids = [h.split('/')[0] for h in headers]
+        for i, key in enumerate(pfamseq_ids):
+            print_('Current step %i, key %s' % (i, key))
+            try:
+                info = seq_info[key]
+            except:
+                info = '\t'.join(['unknown'] * 10 + ['unknown;unknown'])
+            f.write('>%s|%s|%s|%s\n' % (key, info.split('\t')[6], info.split('\t')[9],
+                                        ','.join([name.strip() for name in info.split('\t')[10].split(';')])))
+            f.write('%s\n' % (sequences[i]))
     print_('Elapsed time: %.1f min' % ((end_time - start_time) / 60))
 
 
@@ -216,14 +218,12 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=path2needle):
         if not os.path.exists('tmp/'):
             os.makedirs('tmp/')
         output_handle = open('tmp/PDB_seq.fasta', 'w')
-        SeqIO.write(
-            SeqRecord(Seq(seq), id='PDB sequence'), output_handle, "fasta")
+        SeqIO.write(SeqRecord(Seq(seq), id='PDB sequence'), output_handle, "fasta")
         output_handle.close()
-        f = open("tmp/algn_seq.fasta", "w")
-        for i in range(len(algn)):
-            f.write(">" + hd[i] + "\n")
-            f.write(algn[i] + "\n")
-        f.close()
+        with open("tmp/algn_seq.fasta", "w") as f:
+            for i in range(len(algn)):
+                f.write(">" + hd[i] + "\n")
+                f.write(algn[i] + "\n")
         args = ['ggsearch36', '-M 1-' +
                 str(len(algn[0])), '-b', '1', '-m 8', 'tmp/PDB_seq.fasta', 'tmp/algn_seq.fasta']
         output = subprocess.check_output(args)
@@ -239,16 +239,13 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=path2needle):
             from Bio.Emboss.Applications import NeedleCommandline
             print_("Trying MSASearch with EMBOSS")
             output_handle = open('tmp/PDB_seq.fasta', 'w')
-            SeqIO.write(
-                SeqRecord(Seq(seq), id='PDB sequence'), output_handle, "fasta")
+            SeqIO.write(SeqRecord(Seq(seq), id='PDB sequence'), output_handle, "fasta")
             output_handle.close()
-            output_handle = open("tmp/algn_seq.fasta", "w")
-            s_records = list()
-            for k in range(len(algn)):
-                s_records.append(
-                    SeqRecord(Seq(algn[k]), id=str(k), description=hd[k]))
-            SeqIO.write(s_records, output_handle, "fasta")
-            output_handle.close()
+            with open("tmp/algn_seq.fasta", "w") as output_handle:
+                s_records = list()
+                for k in range(len(algn)):
+                    s_records.append(SeqRecord(Seq(algn[k]), id=str(k), description=hd[k]))
+                SeqIO.write(s_records, output_handle, "fasta")
             needle_cline = NeedleCommandline(path2_algprog + "needle",
                                              asequence="tmp/PDB_seq.fasta",
                                              bsequence="tmp/algn_seq.fasta", gapopen=10, gapextend=0.5, outfile="tmp/needle.txt")
@@ -270,8 +267,7 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=path2needle):
             print_("Trying MSASearch with BioPython")
             score = list()
             for k, s in enumerate(algn):
-                score.append(
-                    pairwise2.align.globalxx(algn, s, one_alignment_only=1, score_only=1))
+                score.append(pairwise2.align.globalxx(algn, s, one_alignment_only=1, score_only=1))
             i_0 = score.index(max(score))
             if species is not None:
                 strseqnum = key_list[i_0]
@@ -296,11 +292,8 @@ def chooseRefSeq(alg):
     algNew = [alg[k] for k in keep_seq]
     numAlgNew = lett2num(algNew)
     simMat = seqSim(numAlgNew)
-    listS = [simMat[i, j]
-             for i in range(simMat.shape[0]) for j in range(i + 1, simMat.shape[1])]
-    meanSID = list()
-    for k in range(len(simMat)):
-        meanSID.append(simMat[k].mean())
+    listS = [simMat[i, j] for i in range(simMat.shape[0]) for j in range(i + 1, simMat.shape[1])]
+    meanSID = [simMat[k].mean() for k in range(len(simMat))]
     meanDiff = abs(meanSID - np.mean(listS))
     strseqnum = [i for i, k in enumerate(meanDiff) if k == min(meanDiff)]
     ix = keep_seq[strseqnum[0]]
@@ -355,8 +348,8 @@ def makeATS(sequences, refpos, refseq, iref=0, truncate=False):
         refseq = refseq.replace('-', '')
         seqal_ref, seqal_alg, _, _, _ = pairwise2.align.globalms(refseq, tmp,
                                                                  2, -1, -.5, -.1)[0]
-        print ('Len refseq %i, len refpos %i, Len alg seq %i, len pairalg %i, len gloalg %i' % (
-            len(refseq), len(refpos), len(tmp), len(seqal_alg), len(sequences[0])))
+        print ('Len refseq %i, len refpos %i, Len alg seq %i, len pairalg %i, len gloalg %i'
+               % (len(refseq), len(refpos), len(tmp), len(seqal_alg), len(sequences[0])))
         # print seqal_ref
         # print seqal_alg
         ats_out = list()
@@ -468,15 +461,11 @@ def filterSeq(alg0, sref=0.5, max_fracgaps=.2, min_seqid=.2, max_seqid=.8):
         sref = chooseRefSeq(alg0)
     Nseq, Npos = len(alg0), len(alg0[0])
     # Elimination of sequences with too many gaps:
-    seqkeep0 = [
-        s for s in range(Nseq) if alg0[s].count('-') / Npos < max_fracgaps]
-    print ("Keeping %i sequences of %i sequences (after filtering for gaps)" % (
-        len(seqkeep0), Nseq))
+    seqkeep0 = [s for s in range(Nseq) if alg0[s].count('-') / Npos < max_fracgaps]
+    print ("Keeping %i sequences of %i sequences (after filtering for gaps)" % (len(seqkeep0), Nseq))
     # Elimination of sequences too dissimilar to the reference (trimming):
-    seqkeep = [s for s in seqkeep0
-               if sum([alg0[s][i] == alg0[sref][i] for i in range(Npos)]) / Npos > min_seqid]
-    print ("Keeping %i sequences of %i sequences (after filtering for seq similarity)" % (
-        len(seqkeep), len(seqkeep0)))
+    seqkeep = [s for s in seqkeep0 if sum([alg0[s][i] == alg0[sref][i] for i in range(Npos)]) / Npos > min_seqid]
+    print ("Keeping %i sequences of %i sequences (after filtering for seq similarity)" % (len(seqkeep), len(seqkeep0)))
     alg = [alg0[s] for s in seqkeep]
     # Sequence weights (smoothing, here effectively treats gaps as a 21st
     # amino acid):
@@ -507,8 +496,7 @@ def filterPos(alg, seqw=[1], max_fracgaps=.2):
     if len(seqw) == 1:
         seqw = np.tile(1, (1, Nseq))
     # Fraction of gaps, taking into account sequence weights:
-    gapsMat = np.array([[int(alg[s][i] == '-') for i in range(Npos)]
-                        for s in range(Nseq)])
+    gapsMat = np.array([[int(alg[s][i] == '-') for i in range(Npos)] for s in range(Nseq)])
     seqwn = seqw / seqw.sum()
     gapsperpos = seqwn.dot(gapsMat)[0]
     # Selected positions:
@@ -611,8 +599,7 @@ def freq(alg, seqw=1, Naa=20, lbda=0, freq0=np.ones(20) / 21):
     seqwn = seqw / seqw.sum()
     al2d = alg2bin(alg, Naa)
     freq1 = seqwn.dot(np.array(al2d.todense()))[0]
-    freq2 = np.array(
-        al2d.T.dot(scipy.sparse.diags(seqwn[0], 0)).dot(al2d).todense())
+    freq2 = np.array(al2d.T.dot(scipy.sparse.diags(seqwn[0], 0)).dot(al2d).todense())
     # Background:
     block = np.outer(freq0, freq0)
     freq2_bkg = np.zeros((Npos * Naa, Npos * Naa))
@@ -640,8 +627,7 @@ def eigenVect(M):
     eigenVectors = eigenVectors[:, idx]
     for k in range(eigenVectors.shape[1]):
         if np.sign(np.mean(eigenVectors[:, k])) != 0:
-            eigenVectors[:, k] = np.sign(
-                np.mean(eigenVectors[:, k])) * eigenVectors[:, k]
+            eigenVectors[:, k] = np.sign(np.mean(eigenVectors[:, k])) * eigenVectors[:, k]
     return eigenVectors, eigenValues
 
 
@@ -654,10 +640,10 @@ def svdss(X, k=6):
       >>> u, s ,v = svdss(X, k=6)
 
     '''
-    u, s, vt = scipy.sparse.linalg.svds(X, k)
+    u, s, vt = scipy.sparse.linalg.svds(X.astype(np.float64), k)
     idx = (-s).argsort()
-    s = s[idx]
-    u = u[:, idx]
+    s = s[idx].astype(np.float128)
+    u = u[:, idx].astype(np.float128)
     for j in range(u.shape[1]):
         sign = np.sign(np.mean(u[:, j]))
         u[:, j] = sign * u[:, j]
@@ -766,8 +752,7 @@ def posWeights(alg, seqw=1, lbda=0, freq0=np.array([.073, .025, .050, .061, .042
     iok = [i for i in range(N_pos * N_aa) if (freq1[i] > 0 and freq1[i] < 1)]
     # Derivatives of relative entropy per position and amino acid:
     Wia = np.zeros(N_pos * N_aa)
-    Wia[iok] = abs(
-        np.log((freq1[iok] * (1 - freq0v[iok])) / ((1 - freq1[iok]) * freq0v[iok])))
+    Wia[iok] = abs(np.log((freq1[iok] * (1 - freq0v[iok])) / ((1 - freq1[iok]) * freq0v[iok])))
     # Relative entropies per position and amino acid:
     Dia = np.zeros(N_pos * N_aa)
     Dia[iok] = freq1[iok] * np.log(freq1[iok] / freq0v[iok])\
@@ -868,8 +853,7 @@ def scaMat(alg, seqw=1, norm='frob', lbda=0, freq0=np.ones(20) / 21,):
     P = np.zeros((N_pos, N_pos, N_aa))
     for i in range(N_pos):
         for j in range(i, N_pos):
-            u, s, vt = np.linalg.svd(
-                tildeC[N_aa * i:N_aa * (i + 1), N_aa * j:N_aa * (j + 1)])
+            u, s, vt = np.linalg.svd(tildeC[N_aa * i:N_aa * (i + 1), N_aa * j:N_aa * (j + 1)])
             Cspec[i, j] = s[0]
             Cfrob[i, j] = np.sqrt(sum(s**2))
             P[i, j, :] = np.sign(np.mean(u[:, 0])) * u[:, 0]
@@ -1153,7 +1137,7 @@ def MultiBar(x, colors='wbrgymc', width=.5):
 # DIRECT COUPLING ANALYSIS (DCA)
 
 
-class Pair:
+class Pair(object):
     ''' A class for a pair of positions. 
         :Attributes:
 
@@ -1254,7 +1238,7 @@ def truncDiag(M, dmax):
     return Mtr
 
 
-class Secton:
+class Secton(object):
     ''' A class for sectons. 
 
         **Attributes:**
@@ -1376,8 +1360,7 @@ def figColors():
             bgr = colorsys.hsv_to_rgb(a, s, 1)
             plt.plot(s * np.cos(2 * np.pi * a), s * np.sin(2 * np.pi * a), 'o', markersize=8,
                      markerfacecolor=bgr, markeredgecolor=bgr)
-    plt.title(
-        r'Color at angle $\alpha$ encoded with $\alpha/(2\pi)$.', fontsize=16)
+    plt.title(r'Color at angle $\alpha$ encoded with $\alpha/(2\pi)$.', fontsize=16)
     plt.axis([-1.1, 1.1, -1.1, 1.1])
 
 
@@ -1503,8 +1486,7 @@ def pdbSeq(pdbid, chain='A', path2pdb=path2structures, calcDist=1):
     if (calcDist == 1):
         for n0, res0 in enumerate(residues):
             for n1, res1 in enumerate(residues):
-                dist[n0, n1] = min(
-                    [atom0 - atom1 for atom0 in res0 for atom1 in res1])
+                dist[n0, n1] = min([atom0 - atom1 for atom0 in res0 for atom1 in res1])
         return sequence, labels, dist
     else:
         return sequence, labels
@@ -1517,38 +1499,37 @@ def writePymol(pdb, sectors, ics, ats, outfilename, chain='A', inpath=path2struc
       >>> writePymol(pdb, sectors, ics, ats, outfilename, chain='A',inpath=path2structures, quit=1)
 
     '''
-    f = open(outfilename, 'w')
-    f.write('delete all\n')
-    f.write('load %s%s.pdb, main\n' % (inpath, pdb))
-    f.write('hide all\n')
-    f.write('bg_color white\n')
-    f.write('show cartoon, (chain %s)\n' % chain)
-    f.write('color white\n\n')
-    for k, sec in enumerate(sectors):
-        b, g, r = colorsys.hsv_to_rgb(sec.col, 1, 1)
-        f.write('set_color color%i, [%.3f,%.3f,%.3f]\n' % (k + 1, b, g, r))
-        f.write('create sector%i, (resi %s) & (chain %s)\n'
-                % (k + 1, ','.join([ats[s] for s in sec.items]), chain))
-        f.write('color color%i, sector%i\n' % (k + 1, k + 1))
-        f.write('show spheres, sector%i\n' % (k + 1))
-        f.write('show surface, sector%i\n\n' % (k + 1))
-    for k, sec in enumerate(ics):
-        b, g, r = colorsys.hsv_to_rgb(sec.col, 1, 1)
-        f.write('set_color color_ic%i, [%.3f,%.3f,%.3f]\n' % (k + 1, b, g, r))
-        f.write('create ic_%i, (resi %s) & (chain %s)\n'
-                % (k + 1, ','.join([ats[s] for s in sec.items]), chain))
-        f.write('color color_ic%i, ic_%i\n' % (k + 1, k + 1))
-        f.write('show spheres, ic_%i\n' % (k + 1))
-        f.write('show surface, ic_%i\n\n' % (k + 1))
-    f.write('zoom\n')
-    f.write('set transparency, 0.4\n')
-    f.write('ray\n')
-    path_list = outfilename.split(os.sep)
-    fn = path_list[-1]
-    f.write('png %s\n' % fn.replace('.pml', ''))
-    if quit == 1:
-        f.write('quit')
-    f.close()
+    with open(outfilename, 'w') as f:
+        f.write('delete all\n')
+        f.write('load %s%s.pdb, main\n' % (inpath, pdb))
+        f.write('hide all\n')
+        f.write('bg_color white\n')
+        f.write('show cartoon, (chain %s)\n' % chain)
+        f.write('color white\n\n')
+        for k, sec in enumerate(sectors):
+            b, g, r = colorsys.hsv_to_rgb(sec.col, 1, 1)
+            f.write('set_color color%i, [%.3f,%.3f,%.3f]\n' % (k + 1, b, g, r))
+            f.write('create sector%i, (resi %s) & (chain %s)\n'
+                    % (k + 1, ','.join([ats[s] for s in sec.items]), chain))
+            f.write('color color%i, sector%i\n' % (k + 1, k + 1))
+            f.write('show spheres, sector%i\n' % (k + 1))
+            f.write('show surface, sector%i\n\n' % (k + 1))
+        for k, sec in enumerate(ics):
+            b, g, r = colorsys.hsv_to_rgb(sec.col, 1, 1)
+            f.write('set_color color_ic%i, [%.3f,%.3f,%.3f]\n' % (k + 1, b, g, r))
+            f.write('create ic_%i, (resi %s) & (chain %s)\n'
+                    % (k + 1, ','.join([ats[s] for s in sec.items]), chain))
+            f.write('color color_ic%i, ic_%i\n' % (k + 1, k + 1))
+            f.write('show spheres, ic_%i\n' % (k + 1))
+            f.write('show surface, ic_%i\n\n' % (k + 1))
+        f.write('zoom\n')
+        f.write('set transparency, 0.4\n')
+        f.write('ray\n')
+        path_list = outfilename.split(os.sep)
+        fn = path_list[-1]
+        f.write('png %s\n' % fn.replace('.pml', ''))
+        if quit == 1:
+            f.write('quit')
 
 
 def figStruct(pdbid, sectors, ats, chainid='A', outfile='Outputs/sectors.pml',
@@ -1579,32 +1560,65 @@ def cytoscapeOut(ats, cutoff, Csca, Di, sectors, Vp, outfilename):
 
     :Example:
       >>> cytoscapeOut(ats, cutoff, Csca, Di, sectors, Vp, outfilename)'''
-    f = open(outfilename + '.sif', 'w')
-    for k in range(len(ats)):
-        flag = 0
-        for j in range(k + 1, len(ats)):
-            if (Csca[k][j] > cutoff):
-                f.write(ats[k] + ' aa ' + ats[j] + '\n')
-                flag = 1
-        if flag == 0:
-            f.write(ats[k] + '\n')
-    f.close()
+    with open(outfilename + '.sif', 'w') as f:
+        for k in range(len(ats)):
+            flag = 0
+            for j in range(k + 1, len(ats)):
+                if (Csca[k][j] > cutoff):
+                    f.write(ats[k] + ' aa ' + ats[j] + '\n')
+                    flag = 1
+            if flag == 0:
+                f.write(ats[k] + '\n')
 
-    f = open(outfilename + '.eda', 'w')
-    f.write('KEY\tSCA\n')
-    for k in range(len(ats)):
-        for j in range(k + 1, len(ats)):
-            f.write((ats[k] + ' (aa) ' + ats[j] + '\t  %.4f \n') % Csca[k][j])
-    f.close()
+    with open(outfilename + '.eda', 'w') as f:
+        f.write('KEY\tSCA\n')
+        for k in range(len(ats)):
+            for j in range(k + 1, len(ats)):
+                f.write((ats[k] + ' (aa) ' + ats[j] + '\t  %.4f \n') % Csca[k][j])
 
     s_idx = [0 for k in range(len(ats))]
     for i, j in enumerate(sectors):
         for k in j.items:
             s_idx[k] = i + 1
 
-    f = open(outfilename + '.noa', 'w')
-    f.write('KEY\tCONSERVATION\tSector\tVp1\tVp2\tVp3\n')
-    for j, k in enumerate(ats):
-        f.write((k + '\t %.4f \t %i \t %.4f \t %.4f \t %.4f \n') %
-                (Di[j], s_idx[j], Vp[j, 0], Vp[j, 1], Vp[j, 2]))
-    f.close()
+    with open(outfilename + '.noa', 'w') as f:
+        f.write('KEY\tCONSERVATION\tSector\tVp1\tVp2\tVp3\n')
+        for j, k in enumerate(ats):
+            f.write((k + '\t %.4f \t %i \t %.4f \t %.4f \t %.4f \n') %
+                    (Di[j], s_idx[j], Vp[j, 0], Vp[j, 1], Vp[j, 2]))
+
+
+def convert_keys_to_string(dictionary):
+    """Recursively converts dictionary keys to strings."""
+    if not isinstance(dictionary, dict):
+        return dictionary
+    return dict((str(k), convert_keys_to_string(v))
+                for k, v in dictionary.items())
+
+
+def convert_values_to_string(dictionary):
+    """Recursively converts dictionary unicode values to strings."""
+    new_dict = copy.deepcopy(dictionary)
+    for key in iterkeys(new_dict):
+        for k, v in iteritems(new_dict[key]):
+            if isinstance(new_dict[key][k], unicode):
+                new_dict[key][k] = str(new_dict[key][k])
+    return new_dict
+
+
+def convert_keys_to_unicode(dictionary):
+    """Recursively converts dictionary keys to strings."""
+    if not isinstance(dictionary, dict):
+        return dictionary
+    return dict((unicode(k), convert_keys_to_unicode(v))
+                for k, v in dictionary.items())
+
+
+def convert_values_to_unicode(dictionary):
+    """Recursively converts dictionary string values to unicode."""
+    new_dict = copy.deepcopy(dictionary)
+    for key in iterkeys(new_dict):
+        for k, v in iteritems(new_dict[key]):
+            if isinstance(new_dict[key][k], str):
+                new_dict[key][k] = unicode(new_dict[key][k])
+    return new_dict
