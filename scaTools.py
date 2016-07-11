@@ -161,10 +161,10 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=path2pfamseq):
                 info = seq_info[key]
             except:
                 info = '\t'.join(['unknown'] * 10 + ['unknown;unknown'])
-            f.write('>%s|%s|%s|%s\n' % (key, info.split('\t')[6], info.split('\t')[9],
-                                        ','.join([name.strip() for name in info.split('\t')[10].split(';')])))
-            f.write('%s\n' % (sequences[i]))
-    print_('Elapsed time: %.1f min' % ((end_time - start_time) / 60))
+            print_('>{}|{}|{}|{}'.format(key, info.split('\t')[6], info.split('\t')[9],
+                                         ','.join([name.strip() for name in info.split('\t')[10].split(';')])), file=f)
+            print_('{}'.format(sequences[i]), file=f)
+    print_('Elapsed time: {:.1f} min'.format((end_time - start_time) / 60))
 
 
 def clean_al(alg, code='ACDEFGHIKLMNPQRSTVWY', gap='-'):
@@ -217,13 +217,12 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=path2needle):
         print_("Trying MSASearch with ggsearch")
         if not os.path.exists('tmp/'):
             os.makedirs('tmp/')
-        output_handle = open('tmp/PDB_seq.fasta', 'w')
-        SeqIO.write(SeqRecord(Seq(seq), id='PDB sequence'), output_handle, "fasta")
-        output_handle.close()
+        with open('tmp/PDB_seq.fasta', 'w') as output_handle:
+            SeqIO.write(SeqRecord(Seq(seq), id='PDB sequence'), output_handle, "fasta")
         with open("tmp/algn_seq.fasta", "w") as f:
             for i in range(len(algn)):
-                f.write(">" + hd[i] + "\n")
-                f.write(algn[i] + "\n")
+                print_(">" + hd[i], file=f)
+                print_(algn[i], file=f)
         args = ['ggsearch36', '-M 1-' +
                 str(len(algn[0])), '-b', '1', '-m 8', 'tmp/PDB_seq.fasta', 'tmp/algn_seq.fasta']
         output = subprocess.check_output(args)
@@ -238,9 +237,8 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=path2needle):
         try:
             from Bio.Emboss.Applications import NeedleCommandline
             print_("Trying MSASearch with EMBOSS")
-            output_handle = open('tmp/PDB_seq.fasta', 'w')
-            SeqIO.write(SeqRecord(Seq(seq), id='PDB sequence'), output_handle, "fasta")
-            output_handle.close()
+            with open('tmp/PDB_seq.fasta', 'w') as output_handle:
+                SeqIO.write(SeqRecord(Seq(seq), id='PDB sequence'), output_handle, "fasta")
             with open("tmp/algn_seq.fasta", "w") as output_handle:
                 s_records = list()
                 for k in range(len(algn)):
@@ -1500,36 +1498,35 @@ def writePymol(pdb, sectors, ics, ats, outfilename, chain='A', inpath=path2struc
 
     '''
     with open(outfilename, 'w') as f:
-        f.write('delete all\n')
-        f.write('load %s%s.pdb, main\n' % (inpath, pdb))
-        f.write('hide all\n')
-        f.write('bg_color white\n')
-        f.write('show cartoon, (chain %s)\n' % chain)
-        f.write('color white\n\n')
+        print_('delete all', file=f)
+        print_('load {}{}.pdb, main'.format(inpath, pdb), file=f)
+        print_('hide all', file=f)
+        print_('bg_color white', file=f)
+        print_('show cartoon, (chain {})'.format(chain), file=f)
+        print_('color white\n', file=f)
         for k, sec in enumerate(sectors):
             b, g, r = colorsys.hsv_to_rgb(sec.col, 1, 1)
-            f.write('set_color color%i, [%.3f,%.3f,%.3f]\n' % (k + 1, b, g, r))
-            f.write('create sector%i, (resi %s) & (chain %s)\n'
-                    % (k + 1, ','.join([ats[s] for s in sec.items]), chain))
-            f.write('color color%i, sector%i\n' % (k + 1, k + 1))
-            f.write('show spheres, sector%i\n' % (k + 1))
-            f.write('show surface, sector%i\n\n' % (k + 1))
+            print_('set_color color{:d}, [{:.3f}{:.3f}{:.3f}]'.format(k + 1, b, g, r), file=f)
+            print_('create sector{:d}, (resi {}) & (chain {})'.format(k + 1, ','.join([ats[s] for s in sec.items]), chain),
+                   file=f)
+            print_('color color{:d}, sector{:d}'.format(k + 1, k + 1), file=f)
+            print_('show spheres, sector{:d}'.format(k + 1), file=f)
+            print_('show surface, sector{:d}\n'.format(k + 1), file=f)
         for k, sec in enumerate(ics):
             b, g, r = colorsys.hsv_to_rgb(sec.col, 1, 1)
-            f.write('set_color color_ic%i, [%.3f,%.3f,%.3f]\n' % (k + 1, b, g, r))
-            f.write('create ic_%i, (resi %s) & (chain %s)\n'
-                    % (k + 1, ','.join([ats[s] for s in sec.items]), chain))
-            f.write('color color_ic%i, ic_%i\n' % (k + 1, k + 1))
-            f.write('show spheres, ic_%i\n' % (k + 1))
-            f.write('show surface, ic_%i\n\n' % (k + 1))
-        f.write('zoom\n')
-        f.write('set transparency, 0.4\n')
-        f.write('ray\n')
+            print_('set_color color_ic{:d}, [{:.3f}{:.3f}{:.3f}]'.format(k + 1, b, g, r), file=f)
+            print_('create ic_{:d}, (resi {}) & (chain {})'.format(k + 1, ','.join([ats[s] for s in sec.items]), chain), file=f)
+            print_('color color_ic{:d}, ic_{:d}'.format(k + 1, k + 1), file=f)
+            print_('show spheres, ic_{:d}'.format(k + 1), file=f)
+            print_('show surface, ic_{:d}\n'.format(k + 1), file=f)
+        print_('zoom', file=f)
+        print_('set transparency, 0.4', file=f)
+        print_('ray', file=f)
         path_list = outfilename.split(os.sep)
         fn = path_list[-1]
-        f.write('png %s\n' % fn.replace('.pml', ''))
+        print_('png {}'.format(fn.replace('.pml', '')), file=f)
         if quit == 1:
-            f.write('quit')
+            print_('quit', file=f)
 
 
 def figStruct(pdbid, sectors, ats, chainid='A', outfile='Outputs/sectors.pml',
@@ -1565,16 +1562,16 @@ def cytoscapeOut(ats, cutoff, Csca, Di, sectors, Vp, outfilename):
             flag = 0
             for j in range(k + 1, len(ats)):
                 if (Csca[k][j] > cutoff):
-                    f.write(ats[k] + ' aa ' + ats[j] + '\n')
+                    print_(ats[k] + ' aa ' + ats[j], file=f)
                     flag = 1
             if flag == 0:
-                f.write(ats[k] + '\n')
+                print_(ats[k], file=f)
 
     with open(outfilename + '.eda', 'w') as f:
-        f.write('KEY\tSCA\n')
+        print_('KEY\tSCA', file=f)
         for k in range(len(ats)):
             for j in range(k + 1, len(ats)):
-                f.write((ats[k] + ' (aa) ' + ats[j] + '\t  %.4f \n') % Csca[k][j])
+                print_((ats[k] + ' (aa) ' + ats[j] + '\t  {:.4f} ').format(Csca[k][j]), file=f)
 
     s_idx = [0 for k in range(len(ats))]
     for i, j in enumerate(sectors):
@@ -1582,10 +1579,10 @@ def cytoscapeOut(ats, cutoff, Csca, Di, sectors, Vp, outfilename):
             s_idx[k] = i + 1
 
     with open(outfilename + '.noa', 'w') as f:
-        f.write('KEY\tCONSERVATION\tSector\tVp1\tVp2\tVp3\n')
+        print_('KEY\tCONSERVATION\tSector\tVp1\tVp2\tVp3', file=f)
         for j, k in enumerate(ats):
-            f.write((k + '\t %.4f \t %i \t %.4f \t %.4f \t %.4f \n') %
-                    (Di[j], s_idx[j], Vp[j, 0], Vp[j, 1], Vp[j, 2]))
+            print_(k + '\t {:.4f} \t {:d} \t {:.4f} \t {:.4f} \t {:.4f} '.format(Di[j], s_idx[j], Vp[j, 0], Vp[j, 1], Vp[j, 2]),
+                   file=f)
 
 
 def convert_keys_to_string(dictionary):
