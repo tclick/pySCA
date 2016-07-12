@@ -157,13 +157,13 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=path2pfamseq):
     with open(pfam_out, 'w') as f:
         pfamseq_ids = [h.split('/')[0] for h in headers]
         for i, key in enumerate(pfamseq_ids):
-            print_('Current step %i, key %s' % (i, key))
+            print_('Current step {:d}, key {}'.format(i, key))
             try:
                 info = seq_info[key]
             except:
                 info = '\t'.join(['unknown'] * 10 + ['unknown;unknown'])
-            print_('>{}|{}|{}|{}'.format(key, info.split('\t')[6], info.split('\t')[9],
-                                         ','.join([name.strip() for name in info.split('\t')[10].split(';')])), file=f)
+            print_('>{}|{}|{}|{}'.format(key, info.split('\t')[5], info.split('\t')[8],
+                                         ','.join([name.strip() for name in info.split('\t')[9].split(';')])), file=f)
             print_('{}'.format(sequences[i]), file=f)
     print_('Elapsed time: {:.1f} min'.format((end_time - start_time) / 60))
 
