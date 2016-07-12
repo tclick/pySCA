@@ -52,7 +52,7 @@ from six.moves import (range, xrange)
 import scaTools as sca
 
 
-Entrez.email = "your.email@youruniversity.edu"  # PLEASE change to your own email !!!
+Entrez.email = "tclick@nctu.edu.tw"  # PLEASE change to your own email !!!
 
 if __name__ == '__main__':
 
@@ -72,8 +72,8 @@ if __name__ == '__main__':
         sys.exit("The option -a must be set to 'pfam' or 'ncbi' - other keywords are not allowed.")
 
     if (options.annot == 'ncbi') & (options.giList == None):
-        sys.exit(
-            "To use NCBI entrez annotation, you must specify a file containing a list of gi numbers (see the --giList argument)")
+        sys.exit("To use NCBI entrez annotation, you must specify a file containing a list of gi numbers "
+                 "(see the --giList argument)")
 
     if (options.annot == 'pfam'):
         # Annotate a PFAM alignment

@@ -42,6 +42,7 @@ import matplotlib.cm as cm
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
+import os.path as path
 import random as rand
 
 
@@ -50,14 +51,14 @@ import random as rand
 # These have to be changed to be consistent with user-defined paths.
 # (this directory should contain the file 'pfamseq.txt' from
 # ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/database_files/
-path2pfamseq = '~/code/python/pySCA/pfamseq.txt'
+path2pfamseq = path.join(os.environ['HOME'], 'code', 'python', 'pySCA', 'Inputs', 'pfamseq.txt')
 
 # the location of your PDB structures
-path2structures = 'Inputs/'
+path2structures = 'Inputs'
 
 # paths to pymol and needle (EMBOSS) applictaions
-path2pymol = '/Applications/MacPyMOL.app/Contents/MacOS/MacPyMOL'
-path2needle = '/usr/local/bin/'
+path2pymol = path.join('opt', 'homebrew', 'bin', 'pymol')
+path2needle = path.join(os.environ['HOME'], 'usr', 'bin')
 
 # Also assumes that a folder named 'Outputs' is in the path
 
@@ -244,7 +245,7 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=path2needle):
                 for k in range(len(algn)):
                     s_records.append(SeqRecord(Seq(algn[k]), id=str(k), description=hd[k]))
                 SeqIO.write(s_records, output_handle, "fasta")
-            needle_cline = NeedleCommandline(path2_algprog + "needle",
+            needle_cline = NeedleCommandline(path.join(path2_algprog, "needle"),
                                              asequence="tmp/PDB_seq.fasta",
                                              bsequence="tmp/algn_seq.fasta", gapopen=10, gapextend=0.5, outfile="tmp/needle.txt")
             stdout, stderr = needle_cline()
@@ -1468,7 +1469,7 @@ def pdbSeq(pdbid, chain='A', path2pdb=path2structures, calcDist=1):
                'GLU': 'E', 'GLY': 'G', 'HIS': 'H', 'ILE': 'I', 'LEU': 'L', 'LYS': 'K', 'MET': 'M',
                'PHE': 'F', 'PRO': 'P', 'SER': 'S', 'THR': 'T', 'TRP': 'W', 'TYR': 'Y', 'VAL': 'V'}
     # Read PDB structure:
-    structure = PDBParser().get_structure(pdbid, path2pdb + pdbid + '.pdb')
+    structure = PDBParser().get_structure(pdbid, path.join(path2pdb, '.'.join((pdbid, 'pdb'))))
     # Fill up sequence and label information
     sequence = ''
     labels = list()
@@ -1506,7 +1507,7 @@ def writePymol(pdb, sectors, ics, ats, outfilename, chain='A', inpath=path2struc
         print_('color white\n', file=f)
         for k, sec in enumerate(sectors):
             b, g, r = colorsys.hsv_to_rgb(sec.col, 1, 1)
-            print_('set_color color{:d}, [{:.3f}{:.3f}{:.3f}]'.format(k + 1, b, g, r), file=f)
+            print_('set_color color{:d}, [{:.3f},{:.3f},{:.3f}]'.format(k + 1, b, g, r), file=f)
             print_('create sector{:d}, (resi {}) & (chain {})'.format(k + 1, ','.join([ats[s] for s in sec.items]), chain),
                    file=f)
             print_('color color{:d}, sector{:d}'.format(k + 1, k + 1), file=f)
@@ -1514,7 +1515,7 @@ def writePymol(pdb, sectors, ics, ats, outfilename, chain='A', inpath=path2struc
             print_('show surface, sector{:d}\n'.format(k + 1), file=f)
         for k, sec in enumerate(ics):
             b, g, r = colorsys.hsv_to_rgb(sec.col, 1, 1)
-            print_('set_color color_ic{:d}, [{:.3f}{:.3f}{:.3f}]'.format(k + 1, b, g, r), file=f)
+            print_('set_color color_ic{:d}, [{:.3f},{:.3f},{:.3f}]'.format(k + 1, b, g, r), file=f)
             print_('create ic_{:d}, (resi {}) & (chain {})'.format(k + 1, ','.join([ats[s] for s in sec.items]), chain), file=f)
             print_('color color_ic{:d}, ic_{:d}'.format(k + 1, k + 1), file=f)
             print_('show spheres, ic_{:d}'.format(k + 1), file=f)
