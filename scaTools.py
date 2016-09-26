@@ -842,8 +842,7 @@ def scaMat(alg, seqw=1, norm='frob', lbda=0, freq0=np.ones(20) / 21,):
     N_aa = 20
     if type(seqw) == int and seqw == 1:
         seqw = np.ones((1, N_seq))
-    freq1, freq2, freq0 = freq(
-        alg, Naa=N_aa, seqw=seqw, lbda=lbda, freq0=freq0)
+    freq1, freq2, freq0 = freq(alg, Naa=N_aa, seqw=seqw, lbda=lbda, freq0=freq0)
     W_pos = posWeights(alg, seqw, lbda)[0]
     tildeC = np.outer(W_pos, W_pos) * (freq2 - np.outer(freq1, freq1))
     # Positional correlations:
@@ -1309,8 +1308,7 @@ def randomize(msa_num, Ntrials, seqw=1, norm='frob', lbda=0, Naa=20, kmax=6):
     Nseq, Npos = msa_num.shape
     Crnd = np.zeros((Npos, Npos))
     # Weighted frequencies, including gaps:
-    f1, f2, f0 = freq(
-        msa_num, Naa=20, seqw=seqw, lbda=lbda, freq0=np.ones(20) / 21)
+    f1, f2, f0 = freq(msa_num, Naa=20, seqw=seqw, lbda=lbda, freq0=np.ones(20) / 21)
     fr1 = np.reshape(f1, (Npos, Naa))
     fr0 = (1 - fr1.sum(axis=1)).reshape(Npos, 1)
     fr01 = np.concatenate((fr0, fr1), axis=1)
